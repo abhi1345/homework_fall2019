@@ -1,4 +1,5 @@
 import time
+
 from collections import OrderedDict
 import pickle
 import numpy as np
@@ -10,8 +11,9 @@ from cs285.infrastructure.utils import *
 from cs285.infrastructure.tf_utils import create_tf_session
 from cs285.infrastructure.logger import Logger
 
-# params for saving rollout videos to tensorboard
+# how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
+MAX_VIDEO_LEN = 40 # we overwrite this in the code below
 
 class RL_Trainer(object):
 
@@ -70,8 +72,6 @@ class RL_Trainer(object):
         ## INIT VARS
         #############
 
-        ## TODO initialize all of the TF variables (that were created by agent, etc.)
-        ## HINT: use global_variables_initializer
         tf.global_variables_initializer().run(session=self.sess)
 
     def run_training_loop(self, n_iter, collect_policy, eval_policy,
@@ -91,6 +91,8 @@ class RL_Trainer(object):
         self.total_envsteps = 0
         self.start_time = time.time()
 
+        rewards_for_plotting = []
+
         for itr in range(n_iter):
             print("\n\n********** Iteration %i ************"%itr)
 
@@ -109,35 +111,41 @@ class RL_Trainer(object):
             # collect trajectories, to be used for training
             training_returns = self.collect_training_trajectories(itr,
                                 initial_expertdata, collect_policy,
-                                self.params['batch_size']) ## TODO implement this function below
+                                self.params['batch_size'])
             paths, envsteps_this_batch, train_video_paths = training_returns
             self.total_envsteps += envsteps_this_batch
 
             # relabel the collected obs with actions from a provided expert policy
             if relabel_with_expert and itr>=start_relabel_with_expert:
-                paths = self.do_relabel_with_expert(expert_policy, paths) ## TODO implement this function below
+                paths = self.do_relabel_with_expert(expert_policy, paths)
 
             # add collected data to replay buffer
             self.agent.add_to_replay_buffer(paths)
 
             # train agent (using sampled data from replay buffer)
-            loss = self.train_agent() ## TODO implement this function below
+            self.train_agent()
 
             # log/save
             if self.log_video or self.log_metrics:
 
                 # perform logging
                 print('\nBeginning logging procedure...')
-                self.perform_logging(itr, paths, eval_policy, train_video_paths)
+                avg_reward = self.perform_logging(itr, paths, eval_policy, train_video_paths)
+                rewards_for_plotting.append(avg_reward)
 
-                # save policy
-                print('\nSaving agent\'s actor...')
-                self.agent.actor.save(self.params['logdir'] + '/policy_itr_'+str(itr))
+
+                if self.params['save_params']:
+                    # save policy
+                    print('\nSaving agent\'s actor...')
+                    self.agent.actor.save(self.params['logdir'] + '/policy_itr_'+str(itr))
+
+        print("Rewards list: {}".format(rewards_for_plotting))
 
     ####################################
     ####################################
 
     def collect_training_trajectories(self, itr, load_initial_expertdata, collect_policy, batch_size):
+        # TODO from HW1
         """
         :param itr:
         :param load_initial_expertdata:  path to expert data pkl file
@@ -154,18 +162,19 @@ class RL_Trainer(object):
             # decide whether to either
                 # load the data. In this case you can directly return as follows
                 # ``` return loaded_paths, 0, None ```
-
                 # collect data, batch_size is the number of transitions you want to collect.
+        """
         if itr == 0:
-            if load_initial_expertdata is not None:
-                paths = pickle.load(open(self.params['expert_data'], 'rb'))
-                return paths, 0, None
+            with open(load_initial_expertdata, 'rb') as file:
+                pathsLoaded = pickle.loads(file.read())
+            return pathsLoaded, 0, None
+        """
 
         # TODO collect data to be used for training
         # HINT1: use sample_trajectories from utils
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
         print("\nCollecting data to be used for training...")
-        paths, envsteps_this_batch = sample_trajectories(self.env, collect_policy, batch_size, self.params['ep_len'])
+        paths, envsteps_this_batch = sample_trajectories(self.env, collect_policy, batch_size * self.params['ep_len'], self.params['ep_len'])
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard
         # note: here, we collect MAX_NVIDEO rollouts, each of length MAX_VIDEO_LEN
@@ -177,8 +186,8 @@ class RL_Trainer(object):
 
         return paths, envsteps_this_batch, train_video_paths
 
-
     def train_agent(self):
+        # TODO: GETTHIS from HW1
         print('\nTraining agent using sampled data from replay buffer...')
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
 
@@ -190,20 +199,19 @@ class RL_Trainer(object):
             # TODO use the sampled data for training
             # HINT: use the agent's train function
             # HINT: print or plot the loss for debugging!
-            loss = self.agent.train(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
-
-        return loss
+            self.agent.train(ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch)
 
     def do_relabel_with_expert(self, expert_policy, paths):
+        # TODO: GETTHIS from HW1 (although you don't actually need it for this homework)
         print("\nRelabelling collected observations with labels from an expert policy...")
 
         # TODO relabel collected obsevations (from our policy) with labels from an expert policy
         # HINT: query the policy (using the get_action function) with paths[i]["observation"]
         # and replace paths[i]["action"] with these expert labels
-        for i in range(len(paths)):
-            acs = expert_policy.get_action(paths[i]["observation"])
-            paths[i]["action"] = acs
-
+        i = 0
+        while i < len(paths):
+            paths[i]['action'] = expert_policy.get_action(paths[i]['observation'])
+            i += 1
         return paths
 
     ####################################
@@ -266,3 +274,5 @@ class RL_Trainer(object):
             print('Done logging...\n\n')
 
             self.logger.flush()
+
+        return logs["Train_AverageReturn"]
