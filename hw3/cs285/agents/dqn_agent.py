@@ -49,14 +49,14 @@ class DQNAgent(object):
 
         # TODO store the latest observation into the replay buffer
         # HINT: see replay buffer's function store_frame
-        self.replay_buffer_idx = TODO
+        self.replay_buffer_idx = self.replay_buffer.store_frame(self.last_obs)
 
         eps = self.exploration.value(self.t)
         # TODO use epsilon greedy exploration when selecting action
         # HINT: take random action 
             # with probability eps (see np.random.random())
             # OR if your current step number (see self.t) is less that self.learning_starts
-        perform_random_action = TODO
+        perform_random_action = self.t < self.learning_starts
 
         if perform_random_action:
             action = TODO
