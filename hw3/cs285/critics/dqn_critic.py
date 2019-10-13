@@ -42,7 +42,11 @@ class DQNCritic(BaseCritic):
             # In double Q-learning, the best action is selected using the Q-network that
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. See page 5 of https://arxiv.org/pdf/1509.06461.pdf for more details.
-            TODO
+            # TODO
+            q_tp1 = q_func(self.obs_tp1_ph, 
+                tf.reduce_max(q_tp1_values, axis=1), 
+                scope='q_func', 
+                reuse=False)
         else:
             # q values of the next timestep
             q_tp1 = tf.reduce_max(q_tp1_values, axis=1)
@@ -54,7 +58,7 @@ class DQNCritic(BaseCritic):
             #currentReward + self.gamma * qValuesOfNextTimestep * (1 - self.done_mask_ph)
         # HINT2: see above, where q_tp1 is defined as the q values of the next timestep
         # HINT3: see the defined placeholders and look for the one that holds current rewards
-        target_q_t = self.rew_t_ph * self.gamma * q_tp1 * (1 - self.done_mask_ph)
+        target_q_t = self.rew_t_ph + (self.gamma * q_tp1 * (1 - self.done_mask_ph))
         target_q_t = tf.stop_gradient(target_q_t)
 
         #####################
