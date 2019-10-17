@@ -111,6 +111,8 @@ class RL_Trainer(object):
         self.total_envsteps = 0
         self.start_time = time.time()
 
+        print("Trainginf for ", n_iter)
+
         for itr in range(n_iter):
             #print("\n\n********** Iteration %i ************"%itr)
 
@@ -147,6 +149,8 @@ class RL_Trainer(object):
             # add collected data to replay buffer
             self.agent.add_to_replay_buffer(paths)
 
+            if itr % 20000 == 0:
+                print('\nTraining agent using sampled data from replay buffer. Iteration {}'.format(itr))
             # train agent (using sampled data from replay buffer)
             loss = self.train_agent()
 
@@ -196,7 +200,7 @@ class RL_Trainer(object):
     def train_agent(self):
         # TODO: GETTHIS from HW1
 
-        print('\nTraining agent using sampled data from replay buffer...')
+        
         for train_step in range(self.params['num_agent_train_steps_per_iter']):
 
             # TODO sample some data from the data buffer
