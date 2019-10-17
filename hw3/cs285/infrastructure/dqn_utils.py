@@ -17,7 +17,7 @@ def get_env_kwargs(env_name):
         kwargs = {
             'learning_starts': 50000,
             'target_update_freq': 10000,
-            'replay_buffer_size': int(1e6),
+            'replay_buffer_size': int(1e5),
             'num_timesteps': int(2e8),
             'q_func': atari_model,
             'learning_freq': 4,
