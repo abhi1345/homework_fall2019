@@ -19,6 +19,4 @@ class ArgMaxPolicy(object):
             observation = obs
         else:
             observation = obs[None]
-        self.critic.obs_t_ph = observation
-        self.critic._build()
-        return tf.keras.backend.eval(self.action)
+        return self.sess.run(self.action, feed_dict={self.critic.obs_t_ph: obs})

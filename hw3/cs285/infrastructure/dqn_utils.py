@@ -268,10 +268,12 @@ def minimize_and_clip(optimizer, objective, var_list, clip_val=10):
     `var_list` while ensure the norm of the gradients for each
     variable is clipped to `clip_val`
     """
+    print("THESE ARE THE vars", tf.trainable_variables())
     gradients = optimizer.compute_gradients(objective, var_list=var_list)
     for i, (grad, var) in enumerate(gradients):
         if grad is not None:
             gradients[i] = (tf.clip_by_norm(grad, clip_val), var)
+    print("THESE ARE THE gradients", gradients)
     return optimizer.apply_gradients(gradients)
 
 def initialize_interdependent_variables(session, vars_list, feed_dict):

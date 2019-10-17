@@ -82,7 +82,7 @@ class DQNAgent(object):
         # HINT1: remember that self.last_obs must always point to the newest/latest observation
         # HINT2: remember the following useful function that you've seen before:
             #obs, reward, done, info = env.step(action)
-        self.last_obs, reward, done, info = env.step(action)
+        self.last_obs, reward, done, info = self.env.step(action)
 
         # TODO store the result of taking this action into the replay buffer
         # HINT1: see replay buffer's store_effect function
@@ -124,7 +124,7 @@ class DQNAgent(object):
 
             # TODO: create a LIST of tensors to run in order to 
             # train the critic as well as get the resulting total_error
-            tensors_to_run = [self.critic.total_error, self.critic.train_fn]
+            tensors_to_run = [self.critic.train_fn, self.critic.total_error]
             loss, _ = self.sess.run(tensors_to_run, feed_dict=feed_dict)
             # Note: remember that the critic's total_error value is what you
             # created to compute the Bellman error in a batch, 
@@ -134,7 +134,7 @@ class DQNAgent(object):
             # TODO: use sess.run to periodically update the critic's target function
             # HINT: see update_target_fn
             if self.num_param_updates % self.target_update_freq == 0:
-                self.sess.run(self.critic.update_target_fn)
+                self.sess.run(self.critic.update_target_fn, feed_dict=feed_dict)
 
             self.num_param_updates += 1
 
