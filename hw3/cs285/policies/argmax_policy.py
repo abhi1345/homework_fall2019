@@ -12,11 +12,10 @@ class ArgMaxPolicy(object):
         self.action = tf.argmax(self.critic.q_t_values, axis=1)
 
     def get_action(self, obs):
-
         # TODO: Make use of self.action by passing these input observations into self.critic
         # HINT: you'll want to populate the critic's obs_t_ph placeholder 
         if len(obs.shape) > 1:
             observation = obs
         else:
             observation = obs[None]
-        return self.sess.run(self.action, feed_dict={self.critic.obs_t_ph: obs})
+        return self.sess.run(self.action, feed_dict={self.critic.obs_t_ph: observation})

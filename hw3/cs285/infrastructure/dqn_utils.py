@@ -49,9 +49,11 @@ def get_env_kwargs(env_name):
             'env_wrappers': lunar_empty_wrapper
         }
         kwargs['exploration_schedule'] = lander_exploration_schedule(kwargs['num_timesteps'])
+        print("This many timesteps: {}".format(kwargs['num_timesteps']))
 
     else:
         raise NotImplementedError
+
 
     return kwargs
 
