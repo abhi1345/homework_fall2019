@@ -47,20 +47,18 @@ class MPCPolicy(BasePolicy):
         candidate_action_sequences = self.sample_action_sequences(num_sequences=self.N, horizon=self.horizon)
 
         # a list you can use for storing the predicted reward for each candidate sequence
-        predicted_rewards_per_ens = np.array([])
+        predicted_rewards_per_ens = [None]*len(self.dyn_models)
 
-        i = 0
-        for model in self.dyn_models:
-            # TODO(Q2)
-            predicted_rewards_per_ens = np.append(predicted_rewards_per_ens, np.zeros(len(candidate_action_sequences)))
-            j = 0
-            for ac in candidate_action_sequences:
-                states = model.run_plan(obs, ac, self.data_statistics)
-                state_rewards = np.vstack([np.expand_dims(obs, axis = 0), np.array(states[:-1])])
-                rewards, done = self.env.get_reward(state_rewards, ac)
-                predicted_rewards_per_ens[i][j] = np.sum(rewards)
-                j += 1
-            i += 1
+        for i, model in enumerate(self.dyn_models):
+            # DONE(Q2)
+            actions_sequence = np.swapaxes(candidate_action_sequences, 0, 1)
+            observations = np.tile(obs, (self.N,1))
+            states_sequence = model.helper(observations, actions_sequence, self.data_statistics)
+            rewarded_states = np.vstack([np.expand_dims(observations, axis = 0), np.array(states_sequence[:-1])])
+            rewards = [None]*self.horizon
+            for j in range(self.horizon):
+                rewards[j], done = self.env.get_reward(rewarded_states[j], actions_sequence[j])
+            predicted_rewards_per_ens[i] = np.array(rewards).sum(axis=0)
 
             # for each candidate action sequence, predict a sequence of
             # states for each dynamics model in your ensemble
@@ -77,3 +75,6 @@ class MPCPolicy(BasePolicy):
         best_action_sequence = candidate_action_sequences[best_index] #TODO(Q2)
         action_to_take = best_action_sequence[0] # TODO(Q2)
         return action_to_take[None] # the None is for matching expected dimensions
+
+    def get_action_helper(self, obs, ac, ds):
+        return 

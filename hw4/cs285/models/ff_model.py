@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 from .base_model import BaseModel
 from cs285.infrastructure.utils import normalize, unnormalize
@@ -111,3 +112,11 @@ class FFModel(BaseModel):
                     self.delta_std_pl : data_statistics['delta_std']}) 
         # TODO(Q1) Run the defined train_op here, and also return the loss being optimized (on this batch of data)
         return loss
+
+    def helper(self, starting_observations, planned_actions_sequence, data_statistics):
+        observations = starting_observations
+        planned_obs = [None]*len(planned_actions_sequence)
+        for i, action in enumerate(planned_actions_sequence):
+            observations = self.get_prediction(observations, action, data_statistics)
+            planned_obs[i] = observations
+        return np.array(planned_obs)

@@ -1,3 +1,5 @@
+import matplotlib  
+matplotlib.use('TkAgg')
 import gym
 import numpy as np
 from gym import spaces
