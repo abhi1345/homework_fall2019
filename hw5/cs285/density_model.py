@@ -159,7 +159,7 @@ class RBF(Density_Model):
             assert euc_dists.shape == (b, B)
 
             # Gaussian
-            gaussians = np.exp(-np.power(euc_dists, 2) / (np.power(self.sigma) * 2))
+            gaussians = np.exp(-np.power(euc_dists, 2) / (np.power(self.sigma, 2) * 2))
             assert gaussians.shape == (b, B)
 
             # 4. Average
@@ -243,7 +243,7 @@ class Exemplar(Density_Model):
             Hint: use build_mlp
         """
         z_mean = build_mlp(state, z_size, scope, n_layers, hid_size)
-        z_logstd = tf.get_variable("z_logstd", shape=z_size, trainable=True, initializer=tf.constant.initializer(value=0))
+        z_logstd = tf.get_variable("z_logstd", shape=z_size, trainable=True, initializer=tf.constant_initializer(value=0))
         return tfp.distributions.MultivariateNormalDiag(loc=z_mean, scale_diag=tf.exp(z_logstd))
 
     def make_prior(self, z_size):

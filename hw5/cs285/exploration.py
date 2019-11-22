@@ -57,7 +57,7 @@ class DiscreteExploration(Exploration):
                 states: (bsize, ob_dim)
         """
         for state in states:
-            self.density_model(update_count(state, 1))
+            self.density_model.update_count(state, 1)
 
     def bonus_function(self, count):
         """
